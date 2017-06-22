@@ -15,11 +15,15 @@ sync:
 	make -C rstudio/ sync
 	make -C tidyverse/ sync
 	make -C verse/ sync
-	make -C geospatial/ sync
 
 .PHONY:
 	echo "Building Rocker versioned images locally...\n"
 
 
-clean:
-	docker rmi rocker/r-ver rocker/rstuido rocker/tidyverse rocker/verse
+clean::
+	make -C r-ver/ clean 
+	make -C rstudio/ clean
+	make -C tidyverse/ clean
+	make -C verse/ clean
+
+

@@ -1,4 +1,8 @@
-[![CircleCI](https://circleci.com/gh/rocker-org/rocker-versioned.svg?style=svg)](https://circleci.com/gh/rocker-org/rocker-versioned) [![license](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://opensource.org/licenses/GPL-2.0)
+[![CircleCI](https://circleci.com/gh/rocker-org/rocker-versioned.svg?style=svg)](https://circleci.com/gh/rocker-org/rocker-versioned)
+[![license](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://opensource.org/licenses/GPL-2.0)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
+[![DOI](https://zenodo.org/badge/25048007.svg)](https://zenodo.org/badge/latestdoi/25048007)
+
 
 
 ## Version-stable Rocker images
@@ -16,7 +20,7 @@ image            | description                               | size   | metrics 
 
 This repository provides alternate stack to `r-base`, `rocker/rstudio`, `rocker/hadleyverse` series, with an emphasis on reproducibility.  Compared to those images, this stack:
 
-- builds on the stable `debian:jessie` release instead of `debian:testing`, so no more apt-get breaking when debian:testing repos are updated and you had to muck with `-t unstable` to get apt-get to work.  
+- builds on debian stable (`debian:jessie` for versions < 3.4.0, `debian:stretch` thereafter) release instead of `debian:testing`, so no more apt-get breaking when `debian:testing` repos are updated and you had to muck with `-t unstable` to get apt-get to work.  
 - Further, this stack installs a fixed version of R itself from source, rather than whatever is already packaged for Debian (the r-base stack gets the latest R version as a binary from debian:unstable), 
 - and it installs all R packages from a fixed snapshot of CRAN at a given date (MRAN repos).
 - provides images that are generally smaller than the r-base series
@@ -25,7 +29,8 @@ Users should include the version tag, e.g. `rocker/verse:3.3.1` when reproducibl
 
 ### Version Tags
 
-Using the R version tag will naturally lock the R version, and also lock the install date of any R packages on the image.  For example,  `rocker/tidyverse:3.3.1` Docker image will always rebuild with R 3.3.1 and R packages installed from the **2016-10-31** snapshot of CRAN, matching **the last day that version was current**, while `rocker/tidyverse:latest` will always have both the latest R version and latest versions of the R packages.  Note that packages installed by a user (e.g. with `install.packages()` either interactively or via downstream Dockerfiles) will still install the latest versions from the RStudio CRAN mirror by default.  To install additional packages from the same CRAN snapshot as used on the `tidyverse` image (e.g. to decrease the chance of package incompatibilities), users must explicitly specify that MRAN repo, which is stored for reference in `/etc/environment`. See the [rocker/verse](https://github.com/rocker-org/rocker-versioned/blob/master/verse/Dockerfile) Dockerfile for an example of this.  New tags will be added with new R releases, with snapshot date being fixed when those Dockerfiles are created.
+Using the R version tag will naturally lock the R version, and also lock the install date of any R packages on the image.  For example,  `rocker/tidyverse:3.3.1` Docker image will always rebuild with R 3.3.1 and R packages installed from the **2016-10-31** MRAN snapshot, corresponding to **the last day that version of R was the most recent release**.   Meanwhile `rocker/tidyverse:latest` will always have both the latest R version and latest versions of the R packages.  
+
 
 ### Images
 
@@ -50,7 +55,7 @@ image            |  Dockerfiles
 
 These images are actively maintained.  This means that while an effort is made to preserve the general function of these images over time, both these Dockerfiles and the resulting images are subject to some change over time.  In particular:
 
-- Images are regularly re-built on Docker Hub whenever their base image changes, starting with changes to `debian` Docker image.  This is the rough equivalent of running `apt-get upgrade` on `debian:jessie`, since all `apt-get` commands are re-run and will pull in the most current sources.  This allows the images to receive security updates to any packages installed from the `debian:jessie` repositories, but will not in general change the versions of any software and is very unlikely to break anything.
+- Images are regularly re-built on Docker Hub whenever their base image changes, starting with changes to `debian` Docker image.  This is the rough equivalent of running `apt-get upgrade` on `debian`, since all `apt-get` commands are re-run and will pull in the most current sources.  This allows the images to receive security updates to any packages installed from the `debian` repositories, but will not in general change the versions of any software and is very unlikely to break anything.
 
 - The Dockerfiles themselves are subject to change, to improve performance, ease of use, readability, or other concerns raised in the issues.  These changes should also not alter the general behavior of R or R packages on the image.  These changes can be seen in the git history.  The [rocker-versioned](https://github.com/rocker-org/rocker-versioned) repo will use its own semantic version tagging to indicate changes to this repository, with snapshots from these tags archived on Zenodo.
 

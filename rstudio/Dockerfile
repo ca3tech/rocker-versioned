@@ -2,10 +2,8 @@ FROM ca3tech/r-ver:latest
 
 ARG RSTUDIO_VERSION
 ARG PANDOC_TEMPLATES_VERSION 
-ENV PANDOC_TEMPLATES_VERSION ${PANDOC_TEMPLATES_VERSION:-1.18}
-
-## Add RStudio binaries to PATH
-ENV PATH /usr/lib/rstudio-server/bin:$PATH
+ENV PANDOC_TEMPLATES_VERSION=${PANDOC_TEMPLATES_VERSION:-1.18} \
+    PATH=/usr/lib/rstudio-server/bin:$PATH
 
 ## Download and install RStudio server & dependencies
 ## Attempts to get detect latest version, otherwise falls back to version given in $VER
@@ -22,7 +20,10 @@ RUN apt-get update \
     psmisc \
     python-setuptools \
     sudo \
-    wget \ 
+    wget \
+  && wget -O libssl1.0.0.deb http://ftp.debian.org/debian/pool/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u6_amd64.deb \
+  && dpkg -i libssl1.0.0.deb \
+  && rm libssl1.0.0.deb \
   && RSTUDIO_LATEST=$(wget --no-check-certificate -qO- https://s3.amazonaws.com/rstudio-server/current.ver) \
   && [ -z "$RSTUDIO_VERSION" ] && RSTUDIO_VERSION=$RSTUDIO_LATEST || true \
   && wget -q http://download2.rstudio.org/rstudio-server-${RSTUDIO_VERSION}-amd64.deb \
@@ -35,6 +36,7 @@ RUN apt-get update \
   && mkdir -p /opt/pandoc/templates && tar zxf ${PANDOC_TEMPLATES_VERSION}.tar.gz \
   && cp -r pandoc-templates*/* /opt/pandoc/templates && rm -rf pandoc-templates* \
   && mkdir /root/.pandoc && ln -s /opt/pandoc/templates /root/.pandoc/templates \
+  && rm ${PANDOC_TEMPLATES_VERSION}.tar.gz \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/ \
   ## RStudio wants an /etc/R, will populate from $R_HOME/etc
@@ -54,6 +56,8 @@ RUN apt-get update \
 	&& mkdir /home/rstudio \
 	&& chown rstudio:rstudio /home/rstudio \
 	&& addgroup rstudio staff \
+  ## Prevent rstudio from deciding to use /usr/bin/R if a user apt-get installs a package
+  &&  echo 'rsession-which-r=/usr/local/bin/R' >> /etc/rstudio/rserver.conf \ 
   ## configure git not to request password each time 
   && git config --system credential.helper 'cache --timeout=3600' \
   && git config --system push.default simple \
@@ -89,7 +93,14 @@ RUN . /etc/environment \
     &&  Rscript -e "install.packages(c('devtools', 'testthat'), repo = '$REPO')" 
 ### to here
 
-COPY userconf.sh /etc/cont-init.d/conf
+COPY userconf.sh /etc/cont-init.d/userconf
+
+## running with "-e ADD=shiny" adds shiny server
+COPY add_shiny.sh /etc/cont-init.d/add
+
 EXPOSE 8787
+
+## automatically link a shared volume for kitematic users
+VOLUME /home/rstudio/kitematic
 
 CMD ["/init"]

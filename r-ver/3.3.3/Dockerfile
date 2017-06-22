@@ -1,15 +1,20 @@
-FROM debian:jessie 
+FROM debian:jessie
+
+LABEL org.label-schema.license="GPL-2.0" \
+      org.label-schema.vcs-url="https://github.com/rocker-org/rocker-versioned" \
+      org.label-schema.vendor="Rocker Project" \
+      maintainer="Carl Boettiger <cboettig@ropensci.org>"
 
 ARG R_VERSION
 ARG BUILD_DATE
-ENV BUILD_DATE ${BUILD_DATE:-}
-ENV R_VERSION ${R_VERSION:-3.3.3}
-ENV LC_ALL en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV TERM xterm
+ENV BUILD_DATE ${BUILD_DATE:-2017-04-21}
+ENV R_VERSION=${R_VERSION:-3.3.3} \
+    LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8 \
+    TERM=xterm
 
 ## dependencies
-RUN apt-get update \ 
+RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     bash-completion \
     ca-certificates \
@@ -23,10 +28,10 @@ RUN apt-get update \
     libicu52 \
     libjpeg62-turbo \
     libopenblas-dev \
-    libpangocairo-1.0-0 \ 
+    libpangocairo-1.0-0 \
     libpcre3 \
     libpng12-0 \
-    libtiff5 \ 
+    libtiff5 \
     liblzma5 \
     locales \
     make \
@@ -39,7 +44,7 @@ RUN apt-get update \
   && BUILDDEPS="curl \
     default-jdk \
     libbz2-dev \
-    libcairo2-dev \ 
+    libcairo2-dev \
     libcurl4-openssl-dev \
     libpango1.0-dev \
     libjpeg-dev \
@@ -48,7 +53,7 @@ RUN apt-get update \
     libpng-dev \
     libreadline-dev \
     libtiff5-dev \
-    liblzma-dev \ 
+    liblzma-dev \
     libx11-dev \
     libxt-dev \
     perl \
@@ -64,9 +69,9 @@ RUN apt-get update \
     xfonts-base \
     xvfb \
     zlib1g-dev" \
-  && apt-get install -y --no-install-recommends $BUILDDEPS \ 
+  && apt-get install -y --no-install-recommends $BUILDDEPS \
   && cd tmp/ \
-  ## Download source code 
+  ## Download source code
   && curl -O https://cran.r-project.org/src/base/R-3/R-${R_VERSION}.tar.gz \
   ## Extract source code
   && tar -xf R-${R_VERSION}.tar.gz \
@@ -104,7 +109,7 @@ RUN apt-get update \
   && echo "R_LIBS_USER='/usr/local/lib/R/site-library'" >> /usr/local/lib/R/etc/Renviron \
   && echo "R_LIBS=\${R_LIBS-'/usr/local/lib/R/site-library:/usr/local/lib/R/library:/usr/lib/R/library'}" >> /usr/local/lib/R/etc/Renviron \
   ## install packages from date-locked MRAN snapshot of CRAN
-  && [ -z "$BUILD_DATE" ] && BUILD_DATE=$(date -I --date='TZ="America/Los_Angeles"') || true \
+  && [ -z "$BUILD_DATE" ] && BUILD_DATE=$(TZ="America/Los_Angeles" date -I) || true \
   && MRAN=https://mran.microsoft.com/snapshot/${BUILD_DATE} \
   && echo MRAN=$MRAN >> /etc/environment \
   && export MRAN=$MRAN \
